@@ -14,7 +14,7 @@ interface RadialSliceProps {
   innerRadius: number;
   outerRadius: number;
   themeName: ThemeName;
-  onSelect?: (slice: SliceSchema) => void;
+  onSelect?: (slice: SliceSchema, shiftPressed?: boolean) => void;
 }
 
 // ----------------------------------------------------
@@ -95,7 +95,7 @@ export function RadialSliceBackground({
       fill={resolvedBg}
       stroke={isHovered ? theme.slices.hoverStroke : theme.slices.stroke}
       strokeWidth={isHovered ? 2 : 1}
-      style={{ filter: isHovered ? theme.hoverGlow : theme.glow }}
+      style={{ filter: isHovered ? theme.hoverGlow : theme.glow, pointerEvents: 'auto' }}
       className="cursor-pointer transition-colors duration-200"
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -106,7 +106,7 @@ export function RadialSliceBackground({
       onClick={(e) => {
         e.stopPropagation();
         if (navMethod === 'click' || !hoverDelayEnabled || slice.action !== 'submenu') {
-           if (onSelect) onSelect(slice);
+           if (onSelect) onSelect(slice, e.shiftKey);
         }
       }}
     />

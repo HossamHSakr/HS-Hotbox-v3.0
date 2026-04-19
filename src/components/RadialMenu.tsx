@@ -75,7 +75,7 @@ export function RadialMenu() {
   const svgWidth = outerRadius * 2 + svgPadding * 2;
   const svgHeight = outerRadius * 2 + svgPadding * 2;
 
-  const handleSliceSelect = (slice: SliceSchema) => {
+  const handleSliceSelect = (slice: SliceSchema, shiftPressed: boolean = false) => {
     switch (slice.action) {
       case 'submenu':
         navigateMenu(slice.target);
@@ -83,7 +83,7 @@ export function RadialMenu() {
       case 'open_folder':
       case 'launch_app':
       case 'run_script':
-        ipcBridge.executeAction(slice.action, slice.target);
+        ipcBridge.executeAction(slice.action, slice.target, shiftPressed);
         setIsOpen(false);
         break;
       case 'cancel':
@@ -104,13 +104,12 @@ export function RadialMenu() {
     >
       {/* Overlay positioned at the saved coordinates perfectly centered */}
       <div 
-        className="absolute"
+        className="absolute pointer-events-none"
         style={{
           left: position.x,
           top: position.y,
           transform: 'translate(-50%, -50%)',
         }}
-        onClick={(e) => e.stopPropagation()} // stop click from closing when clicking exactly on the SVG area itself
       >
         <svg 
           width={svgWidth} 
@@ -124,7 +123,7 @@ export function RadialMenu() {
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5 }}
-              className="cursor-pointer"
+              className="cursor-pointer pointer-events-auto"
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.95 }}
               onClick={(e) => {
@@ -137,7 +136,7 @@ export function RadialMenu() {
                 fill={isEditorOpen ? currentTheme.center.hoverBg : currentTheme.center.bg}
                 stroke={currentTheme.slices.stroke}
                 strokeWidth={1.5}
-                style={{ filter: isEditorOpen ? currentTheme.hoverGlow : currentTheme.glow }}
+                style={{ filter: isEditorOpen ? currentTheme.hoverGlow : currentTheme.glow, pointerEvents: 'auto' }}
                 className="transition-colors duration-200"
               />
               <Settings 
@@ -152,7 +151,7 @@ export function RadialMenu() {
             </motion.g>
           </g>
 
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="wait">
             <motion.g 
               key={currentMenuId}
               initial={{ rotate: -15, opacity: 0 }}
@@ -161,7 +160,7 @@ export function RadialMenu() {
               transition={{ type: "spring", stiffness: animStiffness, damping: animDamping }}
             >
               {/* --- LAYER 1: Backgrounds & Interactive drop-shadow paths --- */}
-              <g className="radial-slice-backgrounds">
+              <g className="radial-slice-backgrounds pointer-events-auto">
                 {menuInfo.slices.map((slice, i) => (
                   <RadialSliceBackground
                     key={`bg-${slice.id || i}`}
@@ -195,7 +194,7 @@ export function RadialMenu() {
 
           {/* Center piece */}
           <motion.g
-            className="cursor-pointer"
+            className="cursor-pointer pointer-events-auto"
             whileHover="hover"
             whileTap="tap"
             onClick={(e) => {
@@ -210,7 +209,7 @@ export function RadialMenu() {
               fill={currentTheme.center.bg}
               stroke={currentTheme.center.stroke}
               strokeWidth={2}
-              style={{ filter: currentTheme.glow }}
+              style={{ filter: currentTheme.glow, pointerEvents: 'auto' }}
               variants={{
                 hover: { scale: 1.05, fill: currentTheme.center.hoverBg },
                 tap: { scale: 0.95 }

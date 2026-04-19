@@ -1,7 +1,7 @@
 // Simulate a preload bridge/IPC for cross-platform (Electron, Tauri, or C#/C++) integration
 export const ipcBridge = {
-  executeAction: async (action: string, target: string) => {
-    const payload = JSON.stringify({ action, target });
+  executeAction: async (action: string, target: string, shiftPressed: boolean = false) => {
+    const payload = JSON.stringify({ action, target, shiftPressed });
 
     // Photino / WebView2 bridge detection
     if (typeof window !== 'undefined') {

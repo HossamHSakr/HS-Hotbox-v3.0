@@ -101,6 +101,12 @@ namespace HSHotbox
                 
                 string? action = root.GetProperty("action").GetString();
                 string? target = root.GetProperty("target").GetString();
+                
+                bool shiftPressed = false;
+                if (root.TryGetProperty("shiftPressed", out JsonElement spElement))
+                {
+                    shiftPressed = spElement.GetBoolean();
+                }
 
                 if (string.IsNullOrEmpty(action) || string.IsNullOrEmpty(target)) return;
 
@@ -114,11 +120,50 @@ namespace HSHotbox
                         string expTarget = Environment.ExpandEnvironmentVariables(target);
                         if (!string.IsNullOrEmpty(expTarget)) 
                         {
-                            Process.Start(new ProcessStartInfo
+                            bool redirected = false;
+
+                            // If shift is held and action is folder, commandeer the active explorer window
+                            if (shiftPressed && action == "open_folder")
                             {
-                                FileName = expTarget,
-                                UseShellExecute = true
-                            });
+                                try 
+                                {
+                                    Type? shellAppType = Type.GetTypeFromProgID("Shell.Application");
+                                    if (shellAppType != null)
+                                    {
+                                        dynamic? shell = Activator.CreateInstance(shellAppType);
+                                        if (shell != null)
+                                        {
+                                            foreach (dynamic win in shell.Windows()) 
+                                            {
+                                                string name = System.IO.Path.GetFileNameWithoutExtension(win.FullName).ToLower();
+                                                if (name == "explorer") 
+                                                {
+                                                    // Tell existing Windows Explorer to jump to target
+                                                    win.Navigate(expTarget);
+                                                    
+                                                    // Pop window to front
+                                                    SetForegroundWindow((IntPtr)win.HWND);
+                                                    redirected = true;
+                                                    break; // Stop after first explorer found
+                                                }
+                                            }
+                                        }
+                                    }
+                                } 
+                                catch (Exception comEx) 
+                                {
+                                    Console.WriteLine("Shell Redirection Failed: " + comEx.Message);
+                                }
+                            }
+
+                            if (!redirected)
+                            {
+                                Process.Start(new ProcessStartInfo
+                                {
+                                    FileName = expTarget,
+                                    UseShellExecute = true
+                                });
+                            }
                         }
                         break;
                 }
