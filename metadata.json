@@ -1,0 +1,6 @@
+{
+  "name": "HS Hotbox v3.0",
+  "description": "High-performance cross-platform radial menu OS overlay, supporting deep JSON customization, drag & drop GUI editing, dynamic physics engines, and custom event handlers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
