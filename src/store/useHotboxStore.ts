@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { menuData as fallbackMenuData, MenuSchema, SliceSchema } from '../data/menus';
 
-export type ThemeName = 'neon' | 'dark' | 'solarized' | 'custom';
+export type ThemeName = 'neon' | 'dark' | 'solarized' | 'custom' | string;
 
 export interface CustomThemeConfig {
   sliceBg: string;
@@ -18,6 +18,7 @@ export interface HotboxState {
   position: { x: number; y: number };
   theme: ThemeName;
   customTheme: CustomThemeConfig;
+  savedThemes: Record<string, CustomThemeConfig>;
   
   // Data
   menuData: Record<string, MenuSchema>;
@@ -40,6 +41,8 @@ export interface HotboxState {
   setPosition: (x: number, y: number) => void;
   setTheme: (theme: ThemeName) => void;
   setCustomTheme: (config: Partial<CustomThemeConfig>) => void;
+  saveCustomTheme: (name: string, config: CustomThemeConfig) => void;
+  deleteCustomTheme: (name: string) => void;
   setMenuData: (data: Record<string, MenuSchema>) => void;
   navigateMenu: (menuId: string) => void;
   goBack: () => void;
@@ -53,6 +56,7 @@ export const useHotboxStore = create<HotboxState>((set) => ({
   isEditorOpen: false,
   position: { x: 0, y: 0 },
   theme: 'neon',
+  savedThemes: {},
   customTheme: {
     sliceBg: '#1e1e1e',
     sliceHoverBg: '#2d2d2d',
@@ -84,6 +88,12 @@ export const useHotboxStore = create<HotboxState>((set) => ({
   setPosition: (x, y) => set({ position: { x, y } }),
   setTheme: (theme) => set({ theme }),
   setCustomTheme: (config) => set((state) => ({ customTheme: { ...state.customTheme, ...config } })),
+  saveCustomTheme: (name, config) => set((state) => ({ savedThemes: { ...state.savedThemes, [name]: config } })),
+  deleteCustomTheme: (name) => set((state) => {
+    const newThemes = { ...state.savedThemes };
+    delete newThemes[name];
+    return { savedThemes: newThemes, theme: state.theme === name ? 'neon' : state.theme };
+  }),
   setMenuData: (data) => set({ menuData: data }),
   navigateMenu: (menuId) =>
     set((state) => ({

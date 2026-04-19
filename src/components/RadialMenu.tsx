@@ -10,7 +10,7 @@ import { ipcBridge } from '../utils/ipc';
 export function RadialMenu() {
   const { 
     isOpen, position, theme, currentMenuId, setIsOpen, navigateMenu, goBack, 
-    isEditorOpen, setIsEditorOpen, menuData, animStiffness, animDamping, customTheme
+    isEditorOpen, setIsEditorOpen, menuData, animStiffness, animDamping, customTheme, savedThemes
   } = useHotboxStore();
   const menuInfo = menuData[currentMenuId] || menuData['main'];
 
@@ -65,7 +65,21 @@ export function RadialMenu() {
     },
     glow: 'none',
     hoverGlow: 'none'
-  } as any : themes[theme];
+  } as any : savedThemes[theme] ? {
+    slices: {
+      defaultBg: savedThemes[theme].sliceBg,
+      hoverBg: savedThemes[theme].sliceHoverBg,
+      stroke: savedThemes[theme].sliceStroke,
+      hoverStroke: savedThemes[theme].sliceStroke,
+      text: savedThemes[theme].sliceText
+    },
+    center: {
+      bg: savedThemes[theme].centerBg,
+      hoverBg: savedThemes[theme].centerHoverBg
+    },
+    glow: 'none',
+    hoverGlow: 'none'
+  } : themes[theme as keyof typeof themes];
 
   const innerRadius = 50 * radiusScale;
   const outerRadius = 180 * radiusScale;

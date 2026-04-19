@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useHotboxStore } from '../store/useHotboxStore';
 import { motion, Reorder, AnimatePresence } from 'motion/react';
-import { Settings, Check, Edit2, GripVertical, Trash2, MousePointer2, Clock, Zap } from 'lucide-react';
+import { Settings, Check, Edit2, GripVertical, Trash2, MousePointer2, Clock, Zap, Plus, Save } from 'lucide-react';
 import { SliceSchema } from '../data/menus';
 
 export function EditorPanel() {
@@ -9,8 +9,11 @@ export function EditorPanel() {
     isEditorOpen, currentMenuId, theme, setTheme, menuData, updateSlices,
     navMethod, hoverDelayEnabled, hoverDelay, setNavConfig,
     animStiffness, animDamping, animDuration, setAnimConfig,
-    customTheme, setCustomTheme
+    customTheme, setCustomTheme, savedThemes, saveCustomTheme, deleteCustomTheme
   } = useHotboxStore();
+
+  const [isCreatingTheme, setIsCreatingTheme] = useState(false);
+  const [newThemeName, setNewThemeName] = useState('');
 
   const currentSlices = menuData[currentMenuId]?.slices || [];
 
@@ -21,6 +24,15 @@ export function EditorPanel() {
   const handleRemove = (idToRemove: string | undefined) => {
     if (!idToRemove) return;
     updateSlices(currentMenuId, currentSlices.filter(s => s.id !== idToRemove));
+  };
+  
+  const handleSaveTheme = () => {
+    if (newThemeName.trim()) {
+      saveCustomTheme(newThemeName.trim().toLowerCase(), customTheme);
+      setTheme(newThemeName.trim().toLowerCase());
+      setIsCreatingTheme(false);
+      setNewThemeName('');
+    }
   };
 
   if (!isEditorOpen) return null;
@@ -43,19 +55,28 @@ export function EditorPanel() {
          {/* Theme Picker */}
          <div className="flex flex-col gap-2">
            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Global Style</label>
-           {['neon', 'dark', 'solarized', 'custom'].map((t) => (
-             <button 
-               key={t}
-               onClick={() => setTheme(t as any)}
-               className={`px-3 py-2.5 rounded-lg flex justify-between items-center transition-all ${
-                 theme === t 
-                 ? 'border border-indigo-500 bg-indigo-500/10 text-white shadow-[0_0_15px_rgba(99,102,241,0.2)]' 
-                 : 'border border-white/5 bg-black/40 hover:bg-white/10'
-               }`}
-             >
-               <span className="capitalize text-sm font-medium">{t} Theme</span>
-               {theme === t && <Check size={16} className="text-indigo-400" />}
-             </button>
+           {['neon', 'dark', 'solarized', ...Object.keys(savedThemes), 'custom'].map((t) => (
+             <div key={t} className="flex gap-2">
+               <button 
+                 onClick={() => setTheme(t as any)}
+                 className={`flex-1 px-3 py-2.5 rounded-lg flex justify-between items-center transition-all ${
+                   theme === t 
+                   ? 'border border-indigo-500 bg-indigo-500/10 text-white shadow-[0_0_15px_rgba(99,102,241,0.2)]' 
+                   : 'border border-white/5 bg-black/40 hover:bg-white/10'
+                 }`}
+               >
+                 <span className="capitalize text-sm font-medium">{t} Theme</span>
+                 {theme === t && <Check size={16} className="text-indigo-400" />}
+               </button>
+               {Object.keys(savedThemes).includes(t) && (
+                 <button 
+                   onClick={() => deleteCustomTheme(t)}
+                   className="px-3 shrink-0 rounded-lg flex items-center justify-center transition-all border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                 >
+                   <Trash2 size={16} />
+                 </button>
+               )}
+             </div>
            ))}
          </div>
 
@@ -94,6 +115,57 @@ export function EditorPanel() {
                         <input type="color" value={customTheme?.sliceStroke} onChange={(e) => setCustomTheme({ sliceStroke: e.target.value })} className="w-6 h-6 rounded cursor-pointer bg-transparent border-0" />
                      </div>
                    </div>
+                   <div className="flex flex-col gap-1">
+                     <span className="text-xs text-gray-400">Center BG</span>
+                     <div className="flex items-center gap-2">
+                        <input type="color" value={customTheme?.centerBg} onChange={(e) => setCustomTheme({ centerBg: e.target.value })} className="w-6 h-6 rounded cursor-pointer bg-transparent border-0" />
+                     </div>
+                   </div>
+                   <div className="flex flex-col gap-1">
+                     <span className="text-xs text-gray-400">Center Hover</span>
+                     <div className="flex items-center gap-2">
+                        <input type="color" value={customTheme?.centerHoverBg} onChange={(e) => setCustomTheme({ centerHoverBg: e.target.value })} className="w-6 h-6 rounded cursor-pointer bg-transparent border-0" />
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Save Theme Sub-Panel */}
+                 <div className="mt-2 pt-3 border-t border-white/10">
+                   {!isCreatingTheme ? (
+                     <button 
+                       onClick={() => setIsCreatingTheme(true)}
+                       className="w-full py-1.5 flex items-center justify-center gap-1.5 bg-indigo-500/20 text-indigo-300 text-xs rounded border border-indigo-500/30 hover:bg-indigo-500/30 transition-colors"
+                     >
+                       <Plus size={12} /> Save as New Theme
+                     </button>
+                   ) : (
+                     <div className="flex flex-col gap-2">
+                       <input 
+                         autoFocus
+                         type="text" 
+                         placeholder="Theme Name..." 
+                         value={newThemeName}
+                         onChange={(e) => setNewThemeName(e.target.value)}
+                         onKeyDown={(e) => e.key === 'Enter' && handleSaveTheme()}
+                         className="w-full bg-black/50 border border-white/20 rounded px-2 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                       />
+                       <div className="flex gap-2">
+                         <button 
+                           onClick={() => setIsCreatingTheme(false)}
+                           className="flex-1 py-1 text-xs bg-gray-700/50 hover:bg-gray-700 rounded text-gray-300 transition-colors"
+                         >
+                           Cancel
+                         </button>
+                         <button 
+                           onClick={handleSaveTheme}
+                           disabled={!newThemeName.trim()}
+                           className="flex-1 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:hover:bg-indigo-500 rounded text-white transition-colors flex items-center justify-center gap-1"
+                         >
+                           <Save size={12} /> Save
+                         </button>
+                       </div>
+                     </div>
+                   )}
                  </div>
               </motion.div>
             )}

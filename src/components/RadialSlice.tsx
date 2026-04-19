@@ -43,7 +43,7 @@ export function RadialSliceBackground({
   slice, index, total, innerRadius, outerRadius, themeName, onSelect
 }: RadialSliceProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const { navMethod, hoverDelayEnabled, hoverDelay, animDuration, customTheme } = useHotboxStore();
+  const { navMethod, hoverDelayEnabled, hoverDelay, animDuration, customTheme, savedThemes } = useHotboxStore();
   
   const theme = themeName === 'custom' ? {
     slices: {
@@ -55,7 +55,17 @@ export function RadialSliceBackground({
     },
     glow: 'none',
     hoverGlow: 'none'
-  } as any : themes[themeName as keyof typeof themes];
+  } as any : savedThemes[themeName] ? {
+    slices: {
+      defaultBg: savedThemes[themeName].sliceBg,
+      hoverBg: savedThemes[themeName].sliceHoverBg,
+      stroke: savedThemes[themeName].sliceStroke,
+      hoverStroke: savedThemes[themeName].sliceStroke,
+      text: savedThemes[themeName].sliceText
+    },
+    glow: 'none',
+    hoverGlow: 'none'
+  } : themes[themeName as keyof typeof themes];
 
   const hoverTimeout = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -120,11 +130,13 @@ export function RadialSliceBackground({
 export function RadialSliceLabel({
   slice, index, total, innerRadius, outerRadius, themeName
 }: RadialSliceProps) {
-  const { animDuration, customTheme } = useHotboxStore();
+  const { animDuration, customTheme, savedThemes } = useHotboxStore();
   
   const theme = themeName === 'custom' ? {
     slices: { text: customTheme.sliceText }
-  } as any : themes[themeName as keyof typeof themes];
+  } as any : savedThemes[themeName] ? {
+    slices: { text: savedThemes[themeName].sliceText }
+  } : themes[themeName as keyof typeof themes];
 
   const { labelX, labelY } = getSliceLayout(index, total, innerRadius, outerRadius);
 
