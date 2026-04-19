@@ -1,13 +1,23 @@
 import { create } from 'zustand';
-import { menuData as initialMenuData, MenuSchema, SliceSchema } from '../data/menus';
+import { menuData as fallbackMenuData, MenuSchema, SliceSchema } from '../data/menus';
 
-export type ThemeName = 'neon' | 'dark' | 'solarized';
+export type ThemeName = 'neon' | 'dark' | 'solarized' | 'custom';
+
+export interface CustomThemeConfig {
+  sliceBg: string;
+  sliceHoverBg: string;
+  sliceStroke: string;
+  sliceText: string;
+  centerBg: string;
+  centerHoverBg: string;
+}
 
 export interface HotboxState {
   isOpen: boolean;
   isEditorOpen: boolean;
   position: { x: number; y: number };
   theme: ThemeName;
+  customTheme: CustomThemeConfig;
   
   // Data
   menuData: Record<string, MenuSchema>;
@@ -29,6 +39,8 @@ export interface HotboxState {
   setIsEditorOpen: (isOpen: boolean) => void;
   setPosition: (x: number, y: number) => void;
   setTheme: (theme: ThemeName) => void;
+  setCustomTheme: (config: Partial<CustomThemeConfig>) => void;
+  setMenuData: (data: Record<string, MenuSchema>) => void;
   navigateMenu: (menuId: string) => void;
   goBack: () => void;
   updateSlices: (menuId: string, slices: SliceSchema[]) => void;
@@ -41,8 +53,16 @@ export const useHotboxStore = create<HotboxState>((set) => ({
   isEditorOpen: false,
   position: { x: 0, y: 0 },
   theme: 'neon',
+  customTheme: {
+    sliceBg: '#1e1e1e',
+    sliceHoverBg: '#2d2d2d',
+    sliceStroke: '#ffffff',
+    sliceText: '#ffffff',
+    centerBg: '#1e1e1e',
+    centerHoverBg: '#2d2d2d'
+  },
   
-  menuData: initialMenuData,
+  menuData: fallbackMenuData,
   currentMenuId: 'main',
   history: [],
   
@@ -63,6 +83,8 @@ export const useHotboxStore = create<HotboxState>((set) => ({
   setIsEditorOpen: (isEditorOpen) => set({ isEditorOpen }),
   setPosition: (x, y) => set({ position: { x, y } }),
   setTheme: (theme) => set({ theme }),
+  setCustomTheme: (config) => set((state) => ({ customTheme: { ...state.customTheme, ...config } })),
+  setMenuData: (data) => set({ menuData: data }),
   navigateMenu: (menuId) =>
     set((state) => ({
       history: [...state.history, state.currentMenuId],

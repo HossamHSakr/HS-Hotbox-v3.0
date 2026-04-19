@@ -1,6 +1,6 @@
 import React from 'react';
 import { useHotboxStore } from '../store/useHotboxStore';
-import { motion, Reorder } from 'motion/react';
+import { motion, Reorder, AnimatePresence } from 'motion/react';
 import { Settings, Check, Edit2, GripVertical, Trash2, MousePointer2, Clock, Zap } from 'lucide-react';
 import { SliceSchema } from '../data/menus';
 
@@ -8,7 +8,8 @@ export function EditorPanel() {
   const { 
     isEditorOpen, currentMenuId, theme, setTheme, menuData, updateSlices,
     navMethod, hoverDelayEnabled, hoverDelay, setNavConfig,
-    animStiffness, animDamping, animDuration, setAnimConfig
+    animStiffness, animDamping, animDuration, setAnimConfig,
+    customTheme, setCustomTheme
   } = useHotboxStore();
 
   const currentSlices = menuData[currentMenuId]?.slices || [];
@@ -42,7 +43,7 @@ export function EditorPanel() {
          {/* Theme Picker */}
          <div className="flex flex-col gap-2">
            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Global Style</label>
-           {['neon', 'dark', 'solarized'].map((t) => (
+           {['neon', 'dark', 'solarized', 'custom'].map((t) => (
              <button 
                key={t}
                onClick={() => setTheme(t as any)}
@@ -57,6 +58,46 @@ export function EditorPanel() {
              </button>
            ))}
          </div>
+
+         {/* Custom Theme Colors Picker (Only visible if theme === 'custom') */}
+         <AnimatePresence>
+            {theme === 'custom' && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex flex-col gap-3 overflow-hidden bg-black/40 p-3 rounded-lg border border-white/10 mt-1"
+              >
+                 <div className="text-[10px] uppercase font-bold text-indigo-300">Custom Colors</div>
+                 <div className="grid grid-cols-2 gap-3">
+                   <div className="flex flex-col gap-1">
+                     <span className="text-xs text-gray-400">Slice BG</span>
+                     <div className="flex items-center gap-2">
+                        <input type="color" value={customTheme?.sliceBg} onChange={(e) => setCustomTheme({ sliceBg: e.target.value })} className="w-6 h-6 rounded cursor-pointer bg-transparent border-0" />
+                     </div>
+                   </div>
+                   <div className="flex flex-col gap-1">
+                     <span className="text-xs text-gray-400">Slice Hover</span>
+                     <div className="flex items-center gap-2">
+                        <input type="color" value={customTheme?.sliceHoverBg} onChange={(e) => setCustomTheme({ sliceHoverBg: e.target.value })} className="w-6 h-6 rounded cursor-pointer bg-transparent border-0" />
+                     </div>
+                   </div>
+                   <div className="flex flex-col gap-1">
+                     <span className="text-xs text-gray-400">Text</span>
+                     <div className="flex items-center gap-2">
+                        <input type="color" value={customTheme?.sliceText} onChange={(e) => setCustomTheme({ sliceText: e.target.value })} className="w-6 h-6 rounded cursor-pointer bg-transparent border-0" />
+                     </div>
+                   </div>
+                   <div className="flex flex-col gap-1">
+                     <span className="text-xs text-gray-400">Stroke</span>
+                     <div className="flex items-center gap-2">
+                        <input type="color" value={customTheme?.sliceStroke} onChange={(e) => setCustomTheme({ sliceStroke: e.target.value })} className="w-6 h-6 rounded cursor-pointer bg-transparent border-0" />
+                     </div>
+                   </div>
+                 </div>
+              </motion.div>
+            )}
+         </AnimatePresence>
          
          <hr className="border-white/5" />
 
@@ -142,9 +183,9 @@ export function EditorPanel() {
            </div>
 
            <Reorder.Group axis="y" values={currentSlices} onReorder={handleReorder} className="flex flex-col gap-2">
-             {currentSlices.map((slice) => (
+             {currentSlices.map((slice, i) => (
                <Reorder.Item 
-                 key={slice.id} 
+                 key={slice.id || `slice-${i}-${slice.label}`} 
                  value={slice}
                  className="flex items-center gap-3 p-2 bg-black/50 hover:bg-white/5 transition-colors cursor-grab active:cursor-grabbing rounded-lg border border-white/5 relative group"
                >

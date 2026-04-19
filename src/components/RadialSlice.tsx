@@ -43,8 +43,20 @@ export function RadialSliceBackground({
   slice, index, total, innerRadius, outerRadius, themeName, onSelect
 }: RadialSliceProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const theme = themes[themeName];
-  const { navMethod, hoverDelayEnabled, hoverDelay, animDuration } = useHotboxStore();
+  const { navMethod, hoverDelayEnabled, hoverDelay, animDuration, customTheme } = useHotboxStore();
+  
+  const theme = themeName === 'custom' ? {
+    slices: {
+      defaultBg: customTheme.sliceBg,
+      hoverBg: customTheme.sliceHoverBg,
+      stroke: customTheme.sliceStroke,
+      hoverStroke: customTheme.sliceStroke,
+      text: customTheme.sliceText
+    },
+    glow: 'none',
+    hoverGlow: 'none'
+  } as any : themes[themeName as keyof typeof themes];
+
   const hoverTimeout = React.useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = () => {
@@ -108,9 +120,12 @@ export function RadialSliceBackground({
 export function RadialSliceLabel({
   slice, index, total, innerRadius, outerRadius, themeName
 }: RadialSliceProps) {
-  const theme = themes[themeName];
-  const { animDuration } = useHotboxStore();
+  const { animDuration, customTheme } = useHotboxStore();
   
+  const theme = themeName === 'custom' ? {
+    slices: { text: customTheme.sliceText }
+  } as any : themes[themeName as keyof typeof themes];
+
   const { labelX, labelY } = getSliceLayout(index, total, innerRadius, outerRadius);
 
   const IconNamesMap: Record<string, keyof typeof Icons> = {

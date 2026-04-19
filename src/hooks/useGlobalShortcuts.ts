@@ -17,8 +17,15 @@ export function useGlobalShortcuts() {
       }
     };
 
+    // Native C# Intercept Hook
+    const handleNativeOpen = (e: any) => {
+       const { x, y } = e.detail;
+       setPosition(x, y);
+       setIsOpen(true);
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Shift + Space
+      // Shift + Space (Fallback for web)
       if (e.shiftKey && e.code === 'Space') {
         e.preventDefault();
         if (!isOpen) {
@@ -44,10 +51,12 @@ export function useGlobalShortcuts() {
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('native-hotbox-open', handleNativeOpen);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('native-hotbox-open', handleNativeOpen);
     };
   }, [isOpen, setIsOpen, setPosition, goBack, currentMenuId]);
 }

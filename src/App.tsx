@@ -1,14 +1,30 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { RadialMenu } from './components/RadialMenu';
 import { EditorPanel } from './components/EditorPanel';
 import { AnimatePresence } from 'motion/react';
+import { useHotboxStore } from './store/useHotboxStore';
 
 export default function App() {
   useGlobalShortcuts();
 
   // Detect native WebView environment (C# Photino or WebView2)
   const isNative = !!(window as any).chrome?.webview || !!(window as any).external?.sendMessage;
+
+  useEffect(() => {
+    // Attempt to load the JSON file from the build folder dynamically so users can edit it post-compile
+    fetch('/menus.json')
+      .then(res => {
+         if (!res.ok) throw new Error("Could not find external menus.json");
+         return res.json();
+      })
+      .then(data => {
+         useHotboxStore.getState().setMenuData(data);
+      })
+      .catch(err => {
+         console.warn("[HS Hotbox] Using bundled fallback data. Create /public/menus.json externally to override.", err);
+      });
+  }, []);
 
   return (
     <div 
