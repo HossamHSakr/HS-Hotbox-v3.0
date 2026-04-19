@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+body {
+  background-color: transparent !important;
+}
+
+#root {
+  background-color: transparent !important;
+}
